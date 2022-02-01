@@ -15,7 +15,7 @@ def search(request):
         tag_list = ['data science', 'machine learning', 'backend', 'frontend', 'python', 'java']
         return render(request, "scraper/error.html", {'error' : 'Enter a tag', 'tag_list' : tag_list})
     else:
-        tag = request.POST.GET("tag", None)
+        tag = request.GET.get("tag", None)
         tag = tag.replace(" ", "-")
         tag = tag.lower()
         print(tag)
