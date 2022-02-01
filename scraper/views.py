@@ -11,38 +11,43 @@ def index(request):
     return render(request, "scraper/index.html")
 
 def search(request):
-    if request.method == "GET":
-        return redirect('index')
+    if not request.GET.get("tag"):
+        tag_list = ['data science', 'machine learning', 'backend', 'frontend', 'python', 'java']
+        return render(request, "scraper/error.html", {'error' : 'Enter a tag', 'tag_list' : tag_list})
     else:
-        if not request.POST.get("tag"):
+        tag = request.POST.GET("tag", None)
+        tag = tag.replace(" ", "-")
+        tag = tag.lower()
+        print(tag)
+        tags = related_tags(tag)
+        tag_db = Tags(tags=tag)
+        tag_db.save()
+        get_blog = []
+        tags = related_tags(tag)
+        i = 0
+        while True:
+            get_blog = get_blogs(tag)
+            tags = related_tags(tag)
+            if get_blog and tags:
+                break
+            if i == 7:
+                break
+            i = i + 1
+        if len(get_blog) == 0 and len(tags) == 0:
             tag_list = ['data science', 'machine learning', 'backend', 'frontend', 'python', 'java']
-            return render(request, "scraper/error.html", {'error' : 'Enter a tag', 'tag_list' : tag_list})
-        else:
-            tag = request.POST.get("tag", None)
-            tag = tag.replace(" ", "-")
-            tag = tag.lower()
-            print(tag)
-            tags = related_tags(tag)
-            tag_db = Tags(tags=tag)
-            tag_db.save()
-            get_blog = []
-            tags = related_tags(tag)
-            i = 0
-            while True:
-                get_blog = get_blogs(tag)
-                tags = related_tags(tag)
-                if get_blog and tags:
-                    break
-                if i == 7:
-                    break
-                i = i + 1
-            if len(get_blog) == 0 and len(tags) == 0:
-                tag_list = ['data science', 'machine learning', 'backend', 'frontend', 'python', 'java']
-                return render(request, "scraper/error.html", {'error' : 'Invalid tag', 'tag_list' : tag_list})
-            if len(get_blog) == 0 or len(tags) == 0:
-                return render(request, "scraper/error.html", {'error' : 'Request Timeout'})
-            context = {'urls': get_blog, 'tags' : tags}
-            return render(request, 'scraper/search.html', context)
+            return render(request, "scraper/error.html", {'error' : 'Invalid tag', 'tag_list' : tag_list})
+        if len(get_blog) == 0 or len(tags) == 0:
+            return render(request, "scraper/error.html", {'error' : 'Request Timeout'})
+        p = Paginator(get_blog, 7)  
+        page_number = request.GET.get('page')
+        try:
+            page_obj = p.get_page(page_number)
+        except PageNotAnInteger:
+            page_obj = p.page(2)
+        except EmptyPage:
+            page_obj = p.page(p.num_pages)
+        context = {'urls': page_obj, 'tags' : tags}
+        return render(request, 'scraper/search.html', context)
 
 def history(request):
     tags = Tags.objects.all().order_by('date').reverse()
