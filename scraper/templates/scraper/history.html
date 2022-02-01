@@ -13,15 +13,7 @@
     {% for tag in urls.object_list %}
       <tr>
         <td>
-            <form action = "{% url 'search' %}", method="post">
-                {% csrf_token %}
-            <button value = {{ tag.tags }} class="link-dark" name = "tag" style = "padding: 0;
-            border: none;
-            background: none;
-            text-decoration: underline;">
-                {{ tag.tags }}
-            </button>
-            </form>
+            <a href="/search/?tag={{ tag.tags }}" class="link-dark" aria-pressed="true">{{ tag.tags }}</a>
         </td>
         <td>{{ tag.date }}</td>
         <td>
