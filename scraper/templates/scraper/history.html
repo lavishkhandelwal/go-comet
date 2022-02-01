@@ -1,0 +1,78 @@
+{% extends 'scraper/base.html' %}
+{% block content %}
+<h2 class="display-6">History</h2>
+<table class="table table-striped">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">Tag Name</th>
+        <th scope="col">Date & Time</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for tag in urls.object_list %}
+      <tr>
+        <td>
+            <form action = "{% url 'search' %}", method="post">
+                {% csrf_token %}
+            <button value = {{ tag.tags }} class="link-dark" name = "tag" style = "padding: 0;
+            border: none;
+            background: none;
+            text-decoration: underline;">
+                {{ tag.tags }}
+            </button>
+            </form>
+        </td>
+        <td>{{ tag.date }}</td>
+        <td>
+            <form action = "{% url 'deletehistory' %}", method="post">
+                {% csrf_token %}
+                <input type="hidden" name="delete" value="{{ tag.id }}">
+                <button type="submit" style="border: none; background: none; outline: none;"><i class="fa fa-trash"></i></button>
+            </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="container p-4">
+    <ul class="pagination justify-content-center">
+        {% if urls.has_previous %}
+            <li class="page-item">
+                <a class = "page-link" href="?page=1">Previous</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+        {% endif %}              
+        {% if urls.number|add:'-4' > 1 %}
+            <li class="page-item"><a class="page-link" href="?page={{ urls.number|add:'-5' }}">&hellip;</a></li>
+        {% endif %}  
+        {% for i in urls.paginator.page_range %}
+            {% if urls.number == i %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">
+                        {{ i }}
+                        <span class="sr-only"></span>
+                    </span>
+                </li>
+            {% elif i > urls.number|add:'-5' and i < urls.number|add:'5' %}
+                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if urls.paginator.num_pages > urls.number|add:'4' %}
+            <li class="page-item"><a class="page-link" href="?page={{ urls.number|add:'5' }}">&hellip;</a></li>
+        {% endif %}
+        {% if urls.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ urls.next_page_number }}">Next</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
